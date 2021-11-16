@@ -1,19 +1,23 @@
 using System;
 using System.Linq;
 using Game.Domain;
+using MongoDB.Driver;
+using Tests;
 
 namespace ConsoleApp
 {
     class Program
     {
-        private readonly IUserRepository userRepo;
-        private readonly IGameRepository gameRepo;
+        private readonly MongoUserRepository userRepo;
+        private readonly MongoGameRepository gameRepo;
         private readonly Random random = new Random();
 
         private Program(string[] args)
         {
-            userRepo = new InMemoryUserRepository();
-            gameRepo = new InMemoryGameRepository();
+            var db = TestMongoDatabase.Create();
+            db.DropCollection(MongoUserRepository.CollectionName);
+            userRepo = new MongoUserRepository(db);
+            gameRepo = new MongoGameRepository(db);
         }
 
         public static void Main(string[] args)
