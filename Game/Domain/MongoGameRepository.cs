@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MongoDB.Driver;
 
 namespace Game.Domain
@@ -18,7 +19,6 @@ namespace Game.Domain
         public GameEntity Insert(GameEntity game)
         {
             gameCollection.InsertOne(game);
-            
             return FindById(game.Id);
         }
 
@@ -50,12 +50,12 @@ namespace Game.Domain
         public bool TryUpdateWaitingToStart(GameEntity game)
         {
             //TODO: Для проверки успешности используй IsAcknowledged и ModifiedCount из результата
-            if (game.Status == GameStatus.WaitingToStart)
-            {
-                Update(game);
-            }
-
+            var foundedGame = FindById(game.Id);
+            if (foundedGame == null || foundedGame.Status != GameStatus.WaitingToStart) return false;
+            var newGame = new GameEntity(game.Id, GameStatus.Playing, game.TurnsCount, game.CurrentTurnIndex, game.Players.ToList());
+            gameCollection.ReplaceOne(x => x.Id == game.Id, newGame);
             return true;
+
         }
     }
 }
